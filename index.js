@@ -2,6 +2,15 @@ const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 const progressOfRange = (value, min, max) => {
   return (value - min) / (max - min);
 };
+
+const shuffle = (array) => {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
+
 const map = (value, x1, y1, x2, y2) =>
   ((value - x1) * (y2 - x2)) / (y1 - x1) + x2;
 
@@ -84,6 +93,13 @@ const createScrollInteractionProvider = () => {
       callback,
     };
     rangeHandlers.push(handler);
+
+    // initial call
+    callback({
+      offset: 0,
+      progress: 0,
+    });
+
     return () => {
       // cleanup range
       const removeIndex = rangeHandlers.findIndex((item) => item === handler);
@@ -239,11 +255,17 @@ function setupInfiniteComments() {
 
   // figure out how many
   console.log(`Comments per row ${commentsPerRow}`);
-  const commentsInRow = comments.slice(0, commentsPerRow - 1);
+
+  const commentsInRow1 = shuffle(comments).slice(0, commentsPerRow - 1);
+  const commentsInRow2 = shuffle(comments).slice(0, commentsPerRow - 1);
+  // const commentsInRow2 = comments.slice(
+  //   commentsPerRow,
+  //   commentsPerRow + commentsPerRow - 1,
+  // );
 
   const commentRows = [
-    createCommentRow(commentsInRow, gap),
-    createCommentRow(commentsInRow, gap),
+    createCommentRow(commentsInRow1, gap),
+    createCommentRow(commentsInRow2, gap),
   ];
 
   container.replaceChildren(...commentRows);
@@ -802,6 +824,17 @@ async function setupCareerCarousel() {
 
   if (!container) return () => {};
 
+  const storyBlurbsElms = [
+    ...container.querySelectorAll(".our-story-blurb-info"),
+  ];
+
+  // const storyBlurbs = storyBlurbsElms.map((elm) => {
+  //   return {
+  //     header: elm.children[0].innerText,
+  //     body: elm.children[1].innerText,
+  //   };
+  // });
+
   // all the images inside the section
   const originalImgs = [...container.querySelectorAll("img")];
   const careerImgsList = originalImgs.map((elm) => elm.cloneNode());
@@ -899,6 +932,7 @@ async function setupCareerCarousel() {
         width 0.3s cubic-bezier(0.165, 0.84, 0.44, 1)
       `;
       img.style.pointerEvents = "none";
+      img.style.opacity = "1";
       container.appendChild(img);
     });
 
@@ -926,6 +960,26 @@ async function setupCareerCarousel() {
     }
 
     strips.forEach((strip) => strip.update(latestIndex));
+
+    // update the description
+    storyBlurbsElms.forEach((blurb, index) => {
+      const blurbIndex = (() => {
+        const index = latestIndex % storyBlurbsElms.length;
+        // going positive direction in index;
+        if (index >= 0) {
+          return index;
+        }
+        // going negative direction in index
+        return storyBlurbsElms.length - Math.abs(index);
+      })();
+      const isCurrentBlurb = blurbIndex === index;
+
+      if (isCurrentBlurb) {
+        blurb.style.display = "flex";
+        return;
+      }
+      blurb.style.display = "none";
+    });
   });
   carouselIndex.set(0);
 
