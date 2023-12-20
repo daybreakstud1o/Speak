@@ -570,7 +570,7 @@ function createPopupVideoModal() {
     });
     video.load();
     video.play();
-    video.muted = true;
+    video.muted = false;
     video.controls = true;
 
     const scrollY = window.scrollY;
