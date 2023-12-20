@@ -256,8 +256,32 @@ function setupInfiniteComments() {
   // figure out how many
   console.log(`Comments per row ${commentsPerRow}`);
 
-  const commentsInRow1 = shuffle(comments).slice(0, commentsPerRow - 1);
-  const commentsInRow2 = shuffle(comments).slice(0, commentsPerRow - 1);
+  const masterList = shuffle([...comments]);
+
+  function randomNoRepeats(array) {
+    var copy = array.slice(0);
+    return function () {
+      if (copy.length < 1) {
+        copy = array.slice(0);
+      }
+      var index = Math.floor(Math.random() * copy.length);
+      var item = copy[index];
+      copy.splice(index, 1);
+      return item;
+    };
+  }
+  const chooser = randomNoRepeats(masterList);
+
+  function getCommentRow(chooser, amount) {
+    const commentRow = [];
+    for (let i = 0; i < amount; i++) {
+      commentRow.push(chooser());
+    }
+    return commentRow;
+  }
+
+  const commentsInRow1 = getCommentRow(chooser, commentsPerRow);
+  const commentsInRow2 = getCommentRow(chooser, commentsPerRow);
   // const commentsInRow2 = comments.slice(
   //   commentsPerRow,
   //   commentsPerRow + commentsPerRow - 1,
